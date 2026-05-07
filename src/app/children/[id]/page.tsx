@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { requireFacilityUser } from '@/lib/db/auth-context';
+import { getOrCreateDailyPack } from '@/lib/ai/daily-questions';
+import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 import { NewRecordForm } from './new-record-form';
 
 export default async function ChildDetailPage({
@@ -11,7 +13,7 @@ export default async function ChildDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase } = await requireFacilityUser();
+  const { supabase, profile } = await requireFacilityUser();
 
   const { data: child } = await supabase
     .from('children')
@@ -30,6 +32,14 @@ export default async function ChildDetailPage({
     .eq('child_id', id)
     .order('occurred_at', { ascending: false })
     .limit(30);
+
+  let questions: [string, string, string] | null = null;
+  try {
+    const pack = await getOrCreateDailyPack(supabase, profile.facility_id);
+    questions = [FIXED_QUESTION_1, pack.question_2, pack.question_3];
+  } catch (e) {
+    console.error('[ChildDetailPage] failed to load daily pack', e);
+  }
 
   return (
     <main className="flex flex-1 flex-col bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 px-4 py-6 sm:px-6 sm:py-10">
@@ -78,7 +88,7 @@ export default async function ChildDetailPage({
             ジーニーが連絡帳の言葉に書き直します。
           </p>
           <div className="mt-4">
-            <NewRecordForm childId={child.id} />
+            <NewRecordForm childId={child.id} questions={questions} />
           </div>
         </section>
 

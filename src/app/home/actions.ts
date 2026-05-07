@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
 import { requireFacilityUser } from '@/lib/db/auth-context';
 import { generateDailyQuestions } from '@/lib/ai/daily-questions';
+import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 
 /**
  * 今日の問いかけを再生成して上書きする。
@@ -28,7 +29,7 @@ export async function regenerateDailyPack(): Promise<{
           facility_id: profile.facility_id,
           date: today,
           principal_message: generated.principal_message,
-          question_1: generated.question_1,
+          question_1: FIXED_QUESTION_1,
           question_2: generated.question_2,
           question_3: generated.question_3,
         },

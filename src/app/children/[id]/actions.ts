@@ -6,26 +6,27 @@ import { requireFacilityUser } from '@/lib/db/auth-context';
 import { rewriteWithGenie } from '@/lib/ai/rewrite';
 import { cleanTranscript } from '@/lib/ai/clean-transcript';
 import { bumpTermCounts } from '@/lib/learning/term-tracking';
-import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 
-const RecordSchema = z.object({
-  childId: z.string().uuid(),
-  rawText: z
-    .string()
-    .trim()
-    .min(1, 'メモを入力してください')
-    .max(2000, 'メモは2000文字以内で入力してください'),
-  question: z
-    .string()
-    .trim()
-    .max(200)
-    .optional()
-    .transform((v) => (v && v.length > 0 ? v : FIXED_QUESTION_1)),
-});
+const QA_MAX = 800;
+
+const RecordSchema = z
+  .object({
+    childId: z.string().uuid(),
+    q1: z.string().trim().max(200),
+    q2: z.string().trim().max(200),
+    q3: z.string().trim().max(200),
+    a1: z.string().trim().max(QA_MAX),
+    a2: z.string().trim().max(QA_MAX),
+    a3: z.string().trim().max(QA_MAX),
+  })
+  .refine((d) => [d.a1, d.a2, d.a3].some((a) => a.length > 0), {
+    message: '少なくとも1つの問いに回答してください',
+    path: ['rawText'],
+  });
 
 export type CreateRecordState =
   | {
-      errors?: { rawText?: string[]; question?: string[] };
+      errors?: Record<string, string[] | undefined>;
       message?: string;
     }
   | undefined;
@@ -36,31 +37,48 @@ export async function createRecord(
 ): Promise<CreateRecordState> {
   const parsed = RecordSchema.safeParse({
     childId: formData.get('childId'),
-    rawText: formData.get('rawText'),
-    question: formData.get('question'),
+    q1: formData.get('q1'),
+    q2: formData.get('q2'),
+    q3: formData.get('q3'),
+    a1: formData.get('a1'),
+    a2: formData.get('a2'),
+    a3: formData.get('a3'),
   });
 
   if (!parsed.success) {
     return { errors: z.flattenError(parsed.error).fieldErrors };
   }
 
+  const { childId, q1, q2, q3, a1, a2, a3 } = parsed.data;
+  const pairs: { q: string; a: string }[] = [
+    { q: q1, a: a1 },
+    { q: q2, a: a2 },
+    { q: q3, a: a3 },
+  ].filter((p) => p.a.length > 0);
+
+  // 連絡帳リライト用に Q&A をまとめる
+  const rawText = pairs
+    .map(({ q, a }) => `Q: ${q}\nA: ${a}`)
+    .join('\n\n');
+
+  // 履歴一覧に出すラベルは最初に答えた問いを採用
+  const questionLabel = pairs[0]?.q || 'ジーニーからの問いかけ';
+
   const { supabase, user, profile } = await requireFacilityUser();
 
-  // ジーニーに連絡帳の言葉へ書き直してもらう
   let rewritten: string | null = null;
   try {
-    rewritten = await rewriteWithGenie(parsed.data.rawText);
+    rewritten = await rewriteWithGenie(rawText);
   } catch (e) {
-    // リライト失敗時は raw のまま保存する(機能継続性を優先)
     console.error('[record] rewrite failed', e);
   }
 
   const { error } = await supabase.from('records').insert({
     facility_id: profile.facility_id,
-    child_id: parsed.data.childId,
+    child_id: childId,
     author_id: user.id,
-    question: parsed.data.question,
-    raw_text: parsed.data.rawText,
+    question: questionLabel,
+    raw_text: rawText,
     rewritten,
   });
 
@@ -69,12 +87,11 @@ export async function createRecord(
     return { message: `記録の保存に失敗しました: ${error.message}` };
   }
 
-  // リライト済みテキストから専門用語を検出してカウント
   if (rewritten) {
     await bumpTermCounts(supabase, user.id, rewritten);
   }
 
-  revalidatePath(`/children/${parsed.data.childId}`);
+  revalidatePath(`/children/${childId}`);
   revalidatePath('/learning');
   return undefined;
 }

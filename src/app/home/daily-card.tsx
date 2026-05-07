@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import {
   getOrCreateDailyPack,
 } from '@/lib/ai/daily-questions';
+import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 import { RegenerateButton } from './regenerate-button';
 
 export async function DailyCard({ facilityId }: { facilityId: string }) {
@@ -16,7 +17,7 @@ export async function DailyCard({ facilityId }: { facilityId: string }) {
     return null;
   }
 
-  const questions = [pack.question_1, pack.question_2, pack.question_3];
+  const questions = [FIXED_QUESTION_1, pack.question_2, pack.question_3];
 
   return (
     <section className="mt-6 rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 p-5 shadow-md">
