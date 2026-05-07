@@ -131,6 +131,7 @@ create table public.daily_questions (
   facility_id uuid not null references public.facilities(id) on delete cascade,
   date date not null,
   principal_message text not null,
+  question_1 text not null,
   question_2 text not null,
   question_3 text not null,
   generated_at timestamptz not null default now(),

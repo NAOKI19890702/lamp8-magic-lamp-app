@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import {
   getOrCreateDailyPack,
 } from '@/lib/ai/daily-questions';
-import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 import { RegenerateButton } from './regenerate-button';
 
 export async function DailyCard({ facilityId }: { facilityId: string }) {
@@ -17,7 +16,7 @@ export async function DailyCard({ facilityId }: { facilityId: string }) {
     return null;
   }
 
-  const questions = [FIXED_QUESTION_1, pack.question_2, pack.question_3];
+  const questions = [pack.question_1, pack.question_2, pack.question_3];
 
   return (
     <section className="mt-6 rounded-3xl bg-gradient-to-br from-amber-100 to-orange-100 p-5 shadow-md">
@@ -31,12 +30,9 @@ export async function DailyCard({ facilityId }: { facilityId: string }) {
           priority
         />
         <div className="flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-xs font-semibold text-amber-700">
-              ジーニーから今日のひとこと
-            </p>
-            <RegenerateButton />
-          </div>
+          <p className="text-xs font-semibold text-amber-700">
+            ジーニーから今日のひとこと
+          </p>
           <p className="mt-1 text-sm leading-relaxed text-amber-900">
             {pack.principal_message}
           </p>
@@ -56,6 +52,8 @@ export async function DailyCard({ facilityId }: { facilityId: string }) {
           </li>
         ))}
       </ol>
+
+      <RegenerateButton />
     </section>
   );
 }

@@ -165,6 +165,7 @@ export type Database = {
           facility_id: string;
           date: string;
           principal_message: string;
+          question_1: string;
           question_2: string;
           question_3: string;
           generated_at: string;
@@ -173,11 +174,13 @@ export type Database = {
           facility_id: string;
           date: string;
           principal_message: string;
+          question_1: string;
           question_2: string;
           question_3: string;
         };
         Update: {
           principal_message?: string;
+          question_1?: string;
           question_2?: string;
           question_3?: string;
         };

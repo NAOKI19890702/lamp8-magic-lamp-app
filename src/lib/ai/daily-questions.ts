@@ -17,18 +17,24 @@ function client(): Anthropic {
 
 export type DailyQuestionPack = {
   principal_message: string;
+  question_1: string;
   question_2: string;
   question_3: string;
 };
 
 const SCHEMA = {
   type: 'object',
-  required: ['principal_message', 'question_2', 'question_3'],
+  required: ['principal_message', 'question_1', 'question_2', 'question_3'],
   additionalProperties: false,
   properties: {
     principal_message: {
       type: 'string',
       description: 'ジーニーからの今日の一言メッセージ。50〜80文字。',
+    },
+    question_1: {
+      type: 'string',
+      description:
+        '今日を振り返る入口の問いかけ(情動・自己制御)。25〜45文字。',
     },
     question_2: {
       type: 'string',
@@ -55,14 +61,15 @@ export async function generateDailyQuestions(
 この日の文脈(季節・曜日・気候・行事など)を踏まえて、以下を生成してください:
 
 - principal_message: ジーニーからスタッフへの今日の一言(50〜80文字、専門的着眼点を添える)
+- question_1: 今日を振り返る入口の問いかけ(情動・自己制御、25〜45文字)
 - question_2: ライトな入口の問いかけ(感覚・運動、25〜45文字)
 - question_3: 専門的な観察問いかけ(社会性・コミュニケーション、25〜45文字)
 
 注:
-- 1問目は固定の「今日の1日の様子はどうでしたか?」なので生成不要
 - 文末は「です・ます」調
 - 同じパターン・同じ用語を繰り返さない
-- 専門用語は保育士が現場で観察できる行動に必ず翻訳する`;
+- 専門用語は保育士が現場で観察できる行動に必ず翻訳する
+- 1問目は気持ちや自己調整に軽やかに触れる入口。重くしすぎない`;
 
   const response = await client().messages.create({
     model: 'claude-opus-4-7',
@@ -104,7 +111,7 @@ export async function getOrCreateDailyPack(
 
   const { data: existing } = await supabase
     .from('daily_questions')
-    .select('principal_message, question_2, question_3')
+    .select('principal_message, question_1, question_2, question_3')
     .eq('facility_id', facilityId)
     .eq('date', today)
     .maybeSingle();
@@ -112,6 +119,7 @@ export async function getOrCreateDailyPack(
   if (existing) {
     return {
       principal_message: existing.principal_message,
+      question_1: existing.question_1,
       question_2: existing.question_2,
       question_3: existing.question_3,
     };
@@ -124,6 +132,7 @@ export async function getOrCreateDailyPack(
     facility_id: facilityId,
     date: today,
     principal_message: generated.principal_message,
+    question_1: generated.question_1,
     question_2: generated.question_2,
     question_3: generated.question_3,
   });
