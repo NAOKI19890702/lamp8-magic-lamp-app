@@ -229,6 +229,19 @@ export type Database = {
         };
         Returns: string;
       };
+      get_invitation_preview: {
+        Args: { p_token: string };
+        Returns: {
+          facility_name: string;
+          role: 'admin' | 'staff';
+          expires_at: string;
+          is_valid: boolean;
+        }[];
+      };
+      accept_invitation: {
+        Args: { p_token: string };
+        Returns: { ok?: boolean; error?: string; facility_id?: string };
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

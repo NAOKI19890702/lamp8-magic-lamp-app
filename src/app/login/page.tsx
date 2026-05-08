@@ -3,14 +3,22 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { LoginButton } from './login-button';
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const { next } = await searchParams;
+  // 安全なパスのみ許可(外部URL遷移を防ぐ)
+  const safeNext = next && next.startsWith('/') ? next : '/home';
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect('/home');
+    redirect(safeNext);
   }
 
   return (
@@ -38,7 +46,7 @@ export default async function LoginPage() {
         </div>
 
         <div className="mt-10">
-          <LoginButton />
+          <LoginButton next={safeNext} />
           <p className="mt-6 text-center text-xs text-amber-700/70">
             ログインすることで、
             <br />

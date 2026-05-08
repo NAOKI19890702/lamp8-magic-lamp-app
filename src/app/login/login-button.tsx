@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-export function LoginButton() {
+export function LoginButton({ next = '/home' }: { next?: string }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -11,10 +11,12 @@ export function LoginButton() {
     setPending(true);
     setError(null);
     const supabase = createClient();
+    const callbackUrl = new URL('/auth/callback', location.origin);
+    callbackUrl.searchParams.set('next', next);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${location.origin}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     });
     if (error) {

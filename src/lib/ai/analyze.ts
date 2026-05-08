@@ -43,8 +43,7 @@ const ANALYSIS_SCHEMA = {
         },
         evidence_quotes: {
           type: 'array',
-          minItems: 1,
-          maxItems: 8,
+          description: '具体的なエピソード(1〜8件程度)',
           items: {
             type: 'object',
             required: ['date', 'observation', 'interpretation'],

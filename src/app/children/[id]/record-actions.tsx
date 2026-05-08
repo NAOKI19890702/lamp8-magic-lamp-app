@@ -9,6 +9,8 @@ type Props = {
   rawText: string;
   occurredAtLabel: string;
   question: string | null;
+  authorName: string | null;
+  canManage: boolean;
 };
 
 function buildShareText({
@@ -119,6 +121,8 @@ export function RecordCard({
   rawText,
   occurredAtLabel,
   question,
+  authorName,
+  canManage,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -168,7 +172,12 @@ export function RecordCard({
   return (
     <li className="record-card rounded-2xl bg-white/80 p-5 shadow-sm backdrop-blur">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs text-amber-700/70">{occurredAtLabel}</p>
+        <div className="flex flex-col">
+          <p className="text-xs text-amber-700/70">{occurredAtLabel}</p>
+          {authorName && (
+            <p className="text-[10px] text-amber-700/60">✍️ {authorName}</p>
+          )}
+        </div>
         {!editing && (
           <div className="record-actions relative flex gap-1 text-xs">
             <button
@@ -185,22 +194,26 @@ export function RecordCard({
                 onClose={() => setShareOpen(false)}
               />
             )}
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              disabled={pending}
-              className="rounded-full px-2 py-1 text-amber-700 hover:bg-amber-100 disabled:opacity-50"
-            >
-              ✏️ 編集
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={pending}
-              className="rounded-full px-2 py-1 text-red-600 hover:bg-red-50 disabled:opacity-50"
-            >
-              🗑 削除
-            </button>
+            {canManage && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  disabled={pending}
+                  className="rounded-full px-2 py-1 text-amber-700 hover:bg-amber-100 disabled:opacity-50"
+                >
+                  ✏️ 編集
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={pending}
+                  className="rounded-full px-2 py-1 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                >
+                  🗑 削除
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

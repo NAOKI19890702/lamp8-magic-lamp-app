@@ -14,7 +14,8 @@ export default async function ChildDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, profile } = await requireFacilityUser();
+  const { supabase, user, profile } = await requireFacilityUser();
+  const isAdmin = profile.role === 'owner' || profile.role === 'admin';
 
   const { data: child } = await supabase
     .from('children')
@@ -29,11 +30,25 @@ export default async function ChildDetailPage({
 
   const { data: records } = await supabase
     .from('records')
-    .select('id, question, raw_text, rewritten, occurred_at')
+    .select('id, question, raw_text, rewritten, occurred_at, author_id')
     .eq('child_id', id)
     .is('archived_at', null)
     .order('occurred_at', { ascending: false })
     .limit(30);
+
+  // 著者の display_name を一括取得(同一事業所のスタッフのみ閲覧可能)
+  const authorIds = Array.from(
+    new Set((records ?? []).map((r) => r.author_id)),
+  );
+  const { data: authors } = authorIds.length
+    ? await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', authorIds)
+    : { data: [] };
+  const authorNameById = new Map(
+    (authors ?? []).map((a) => [a.id, a.display_name]),
+  );
 
   let questions: [string, string, string] | null = null;
   try {
@@ -110,6 +125,8 @@ export default async function ChildDetailPage({
                   initialText={r.rewritten ?? r.raw_text}
                   rawText={r.raw_text}
                   question={r.question}
+                  authorName={authorNameById.get(r.author_id) ?? null}
+                  canManage={isAdmin || r.author_id === user.id}
                   occurredAtLabel={format(
                     new Date(r.occurred_at),
                     'M月d日(E) HH:mm',

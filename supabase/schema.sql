@@ -262,11 +262,31 @@ create policy "records_update_self"
     and author_id = auth.uid()
   );
 
+create policy "records_update_admin"
+  on public.records for update
+  using (
+    facility_id = public.current_facility_id()
+    and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('owner', 'admin')
+    )
+  );
+
 create policy "records_delete_self"
   on public.records for delete
   using (
     facility_id = public.current_facility_id()
     and author_id = auth.uid()
+  );
+
+create policy "records_delete_admin"
+  on public.records for delete
+  using (
+    facility_id = public.current_facility_id()
+    and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('owner', 'admin')
+    )
   );
 
 
@@ -322,6 +342,83 @@ create policy "invitations_insert_admin"
       where id = auth.uid() and role in ('owner', 'admin')
     )
   );
+
+create policy "invitations_delete_admin"
+  on public.invitations for delete
+  using (
+    facility_id = public.current_facility_id()
+    and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('owner', 'admin')
+    )
+  );
+
+
+-- ================================================================
+-- 招待トークン: SECURITY DEFINER で RLS をバイパスして安全に処理
+-- ================================================================
+
+-- 招待リンクを開いた人(まだ事業所未所属)に表示するためのプレビュー
+create or replace function public.get_invitation_preview(p_token text)
+returns table (
+  facility_name text,
+  role text,
+  expires_at timestamptz,
+  is_valid boolean
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    f.name,
+    i.role,
+    i.expires_at,
+    (i.accepted_at is null and i.expires_at > now()) as is_valid
+  from public.invitations i
+  left join public.facilities f on f.id = i.facility_id
+  where i.token = p_token
+  limit 1;
+$$;
+
+-- 招待を受諾(プロフィールに facility_id と role を設定し、招待を accepted に)
+create or replace function public.accept_invitation(p_token text)
+returns json
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_invitation record;
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    return json_build_object('error', 'not_authenticated');
+  end if;
+
+  select * into v_invitation
+  from public.invitations
+  where token = p_token
+    and accepted_at is null
+    and expires_at > now()
+  limit 1;
+
+  if not found then
+    return json_build_object('error', 'invalid_or_expired');
+  end if;
+
+  update public.profiles
+  set facility_id = v_invitation.facility_id,
+      role = v_invitation.role
+  where id = v_user_id;
+
+  update public.invitations
+  set accepted_at = now()
+  where id = v_invitation.id;
+
+  return json_build_object('ok', true, 'facility_id', v_invitation.facility_id);
+end;
+$$;
 
 
 -- ================================================================
