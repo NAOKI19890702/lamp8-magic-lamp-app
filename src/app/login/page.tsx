@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { LoginButton } from './login-button';
+import { WebViewWarning } from './webview-warning';
 
 export default async function LoginPage({
   searchParams,
@@ -43,6 +44,7 @@ export default async function LoginPage({
         </div>
 
         <div className="mt-8">
+          <WebViewWarning />
           <LoginButton next={safeNext} />
           <p className="mt-6 text-center text-xs text-amber-700/70">
             ログインすることで、
