@@ -97,6 +97,72 @@ export async function createRecord(
 }
 
 /**
+ * 既存記録の連絡帳テキスト(rewritten)を編集する。
+ * 編集できるのは作成者本人のみ(RLS)。
+ */
+export async function updateRecord(
+  recordId: string,
+  newRewritten: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const trimmed = newRewritten.trim();
+  if (!trimmed) {
+    return { ok: false, message: '本文を入力してください' };
+  }
+  if (trimmed.length > 4000) {
+    return { ok: false, message: '本文が長すぎます(4000文字以内)' };
+  }
+
+  const { supabase } = await requireFacilityUser();
+
+  const { data, error } = await supabase
+    .from('records')
+    .update({ rewritten: trimmed })
+    .eq('id', recordId)
+    .select('child_id')
+    .maybeSingle();
+
+  if (error) {
+    console.error('[updateRecord] failed', error);
+    return { ok: false, message: error.message };
+  }
+  if (!data) {
+    return { ok: false, message: '記録が見つからないか、編集権限がありません' };
+  }
+
+  revalidatePath(`/children/${data.child_id}`);
+  return { ok: true };
+}
+
+/**
+ * 記録の論理削除(archived_at に現在時刻を入れる)。
+ * 削除できるのは作成者本人のみ(RLS)。
+ */
+export async function archiveRecord(
+  recordId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { supabase } = await requireFacilityUser();
+
+  const { data, error } = await supabase
+    .from('records')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('id', recordId)
+    .is('archived_at', null)
+    .select('child_id')
+    .maybeSingle();
+
+  if (error) {
+    console.error('[archiveRecord] failed', error);
+    return { ok: false, message: error.message };
+  }
+  if (!data) {
+    return { ok: false, message: '記録が見つからないか、削除権限がありません' };
+  }
+
+  revalidatePath(`/children/${data.child_id}`);
+  return { ok: true };
+}
+
+/**
  * 音声認識テキストを整える(誤字・句読点だけ最小限に修正)。
  * フォームの textarea を上書きするのに使う。
  */

@@ -88,6 +88,7 @@ export type Database = {
           occurred_at: string;
           created_at: string;
           updated_at: string;
+          archived_at: string | null;
         };
         Insert: {
           id?: string;
@@ -103,6 +104,7 @@ export type Database = {
           question?: string | null;
           raw_text?: string;
           rewritten?: string | null;
+          archived_at?: string | null;
         };
         Relationships: [];
       };

@@ -73,7 +73,8 @@ create table public.records (
   rewritten text,
   occurred_at timestamptz not null default now(),  -- 観察された時刻
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  archived_at timestamptz  -- 論理削除(null = 有効な記録)
 );
 
 alter table public.records enable row level security;

@@ -6,6 +6,7 @@ import { requireFacilityUser } from '@/lib/db/auth-context';
 import { getOrCreateDailyPack } from '@/lib/ai/daily-questions';
 import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 import { NewRecordForm } from './new-record-form';
+import { RecordCard } from './record-actions';
 
 export default async function ChildDetailPage({
   params,
@@ -30,6 +31,7 @@ export default async function ChildDetailPage({
     .from('records')
     .select('id, question, raw_text, rewritten, occurred_at')
     .eq('child_id', id)
+    .is('archived_at', null)
     .order('occurred_at', { ascending: false })
     .limit(30);
 
@@ -99,38 +101,18 @@ export default async function ChildDetailPage({
           {records && records.length > 0 ? (
             <ul className="mt-3 grid gap-3">
               {records.map((r) => (
-                <li
+                <RecordCard
                   key={r.id}
-                  className="rounded-2xl bg-white/80 p-5 shadow-sm backdrop-blur"
-                >
-                  <p className="text-xs text-amber-700/70">
-                    {format(new Date(r.occurred_at), 'M月d日(E) HH:mm', {
-                      locale: ja,
-                    })}
-                  </p>
-                  {r.question && (
-                    <p className="mt-1 text-xs font-medium text-amber-800">
-                      {r.question}
-                    </p>
+                  recordId={r.id}
+                  initialText={r.rewritten ?? r.raw_text}
+                  rawText={r.raw_text}
+                  question={r.question}
+                  occurredAtLabel={format(
+                    new Date(r.occurred_at),
+                    'M月d日(E) HH:mm',
+                    { locale: ja },
                   )}
-                  {r.rewritten ? (
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-amber-900">
-                      {r.rewritten}
-                    </p>
-                  ) : (
-                    <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-zinc-600">
-                      {r.raw_text}
-                    </p>
-                  )}
-                  {r.rewritten && r.raw_text !== r.rewritten && (
-                    <details className="mt-3 text-xs text-amber-700/70">
-                      <summary className="cursor-pointer">元のメモ</summary>
-                      <p className="mt-1 whitespace-pre-wrap rounded-lg bg-amber-50 p-3">
-                        {r.raw_text}
-                      </p>
-                    </details>
-                  )}
-                </li>
+                />
               ))}
             </ul>
           ) : (
