@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { requireFacilityUser } from '@/lib/db/auth-context';
 import { SignOutButton } from './sign-out-button';
 import { DailyCard, DailyCardSkeleton } from './daily-card';
+import { OnboardingTour } from './onboarding-tour';
 
 const FEEDBACK_URL =
   'https://docs.google.com/forms/d/e/1FAIpQLSfqVSnpz2gj1dVf_t-GuztTUaFjJZGwt9KBycf8r24NUw-H0Q/viewform';
@@ -34,6 +35,7 @@ export default async function HomePage() {
 
   return (
     <main className="flex flex-1 flex-col bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 px-4 py-6 sm:px-6 sm:py-10">
+      <OnboardingTour />
       <header className="mx-auto w-full max-w-2xl">
         <div className="flex items-center justify-between rounded-3xl bg-white/80 px-5 py-4 shadow-md backdrop-blur">
           <div className="flex items-center gap-3">

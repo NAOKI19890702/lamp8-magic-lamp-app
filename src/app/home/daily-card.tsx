@@ -27,7 +27,7 @@ export async function DailyCard({ facilityId }: { facilityId: string }) {
           alt="ジーニー"
           width={56}
           height={56}
-          className="rounded-full shadow-sm"
+          className="genie-float rounded-full shadow-sm"
           priority
         />
         <div className="flex-1">

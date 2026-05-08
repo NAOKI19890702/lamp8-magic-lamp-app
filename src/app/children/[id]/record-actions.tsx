@@ -170,12 +170,25 @@ export function RecordCard({
   });
 
   return (
-    <li className="record-card rounded-2xl bg-white/80 p-5 shadow-sm backdrop-blur">
+    <li className="record-card relative overflow-hidden rounded-2xl border-l-4 border-amber-400 bg-gradient-to-br from-amber-50/90 to-orange-50/70 p-5 pl-6 shadow-sm backdrop-blur">
+      {/* 連絡帳らしい右上の小さな飾り */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-3 top-3 text-amber-300/50"
+      >
+        ✿
+      </span>
+
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col">
-          <p className="text-xs text-amber-700/70">{occurredAtLabel}</p>
+          <p className="inline-flex items-center gap-1 text-xs font-medium text-amber-800/80">
+            <span aria-hidden>📅</span>
+            {occurredAtLabel}
+          </p>
           {authorName && (
-            <p className="text-[10px] text-amber-700/60">✍️ {authorName}</p>
+            <p className="mt-0.5 text-[10px] text-amber-700/60">
+              ✍️ {authorName}
+            </p>
           )}
         </div>
         {!editing && (
@@ -219,7 +232,9 @@ export function RecordCard({
       </div>
 
       {question && (
-        <p className="mt-1 text-xs font-medium text-amber-800">{question}</p>
+        <p className="mt-2 inline-block rounded-md bg-white/60 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+          {question}
+        </p>
       )}
 
       {editing ? (
