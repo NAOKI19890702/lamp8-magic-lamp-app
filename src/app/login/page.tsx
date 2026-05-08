@@ -28,7 +28,7 @@ export default async function LoginPage({
           {/* タイトル(魔法のランプnote)はロゴに含まれているため、視覚的には非表示。SEO/スクリーンリーダー用に残す */}
           <h1 className="sr-only">魔法のランプnote</h1>
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt="魔法のランプnote"
             width={560}
             height={315}

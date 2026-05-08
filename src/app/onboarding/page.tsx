@@ -28,7 +28,7 @@ export default async function OnboardingPage() {
       <div className="w-full max-w-md rounded-3xl bg-white/80 p-8 shadow-xl backdrop-blur">
         <div className="flex flex-col items-center text-center">
           <Image
-            src="/logo.jpg"
+            src="/logo.png"
             alt="魔法のランプnote"
             width={560}
             height={315}
