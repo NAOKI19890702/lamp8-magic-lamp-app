@@ -1,41 +1,126 @@
 'use client';
 
-import { useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 export function LoginButton({ next = '/home' }: { next?: string }) {
-  const [pending, setPending] = useState(false);
+  const [googlePending, setGooglePending] = useState(false);
+  const [otpPending, setOtpPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [email, setEmail] = useState('');
 
-  async function handleLogin() {
-    setPending(true);
+  function buildCallbackUrl() {
+    const url = new URL('/auth/callback', location.origin);
+    url.searchParams.set('next', next);
+    return url.toString();
+  }
+
+  async function handleGoogle() {
+    setGooglePending(true);
     setError(null);
     const supabase = createClient();
-    const callbackUrl = new URL('/auth/callback', location.origin);
-    callbackUrl.searchParams.set('next', next);
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error: e } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: callbackUrl.toString(),
-      },
+      options: { redirectTo: buildCallbackUrl() },
     });
-    if (error) {
-      setError(error.message);
-      setPending(false);
+    if (e) {
+      setError(e.message);
+      setGooglePending(false);
     }
   }
 
+  async function handleOtp(e: FormEvent) {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setOtpPending(true);
+    setError(null);
+    const supabase = createClient();
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: trimmed,
+      options: { emailRedirectTo: buildCallbackUrl() },
+    });
+    setOtpPending(false);
+    if (err) {
+      setError(err.message);
+    } else {
+      setOtpSent(true);
+    }
+  }
+
+  const anyPending = googlePending || otpPending;
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+      {/* Google */}
       <button
         type="button"
-        onClick={handleLogin}
-        disabled={pending}
+        onClick={handleGoogle}
+        disabled={anyPending}
         className="flex h-12 w-full items-center justify-center gap-3 rounded-full border border-amber-200 bg-white text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-amber-50 disabled:opacity-60"
       >
         <GoogleIcon />
-        {pending ? 'ログイン中…' : 'Google でログイン'}
+        {googlePending ? 'ログイン中…' : 'Google でログイン'}
       </button>
+
+      {/* Divider */}
+      <div className="my-1 flex items-center" role="separator" aria-hidden>
+        <div className="flex-1 border-t border-amber-200" />
+        <span className="mx-3 text-xs text-amber-700/60">または</span>
+        <div className="flex-1 border-t border-amber-200" />
+      </div>
+
+      {/* Magic Link */}
+      {otpSent ? (
+        <div className="rounded-2xl bg-amber-50 p-4 text-center text-sm text-amber-900">
+          <p className="text-base">✉️ お手紙を送りました</p>
+          <p className="mt-2 text-xs leading-relaxed text-amber-800/80">
+            受信箱(または迷惑メールフォルダ)を開いて、
+            <br />
+            ジーニーからの「ランプに灯をともす」リンクをタップしてください。
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setOtpSent(false);
+              setEmail('');
+            }}
+            className="mt-3 text-xs text-amber-700 underline hover:text-amber-900"
+          >
+            別のメールアドレスで送り直す
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleOtp} className="flex flex-col gap-2">
+          <label
+            htmlFor="login-email"
+            className="text-xs font-semibold text-amber-900"
+          >
+            メールでログイン(パスワード不要)
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            disabled={anyPending}
+            className="h-11 w-full rounded-xl border border-amber-200 bg-white px-4 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 disabled:opacity-60"
+          />
+          <button
+            type="submit"
+            disabled={anyPending || !email.trim()}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-amber-500 text-sm font-semibold text-white shadow-md transition hover:bg-amber-600 disabled:opacity-60"
+          >
+            {otpPending ? '送信中…' : '✉️ メールでリンクを送る'}
+          </button>
+        </form>
+      )}
+
       {error && (
         <p className="text-center text-xs text-red-600" role="alert">
           {error}
