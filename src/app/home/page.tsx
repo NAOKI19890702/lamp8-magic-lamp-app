@@ -5,6 +5,9 @@ import { requireFacilityUser } from '@/lib/db/auth-context';
 import { SignOutButton } from './sign-out-button';
 import { DailyCard, DailyCardSkeleton } from './daily-card';
 
+const FEEDBACK_URL =
+  'https://docs.google.com/forms/d/e/1FAIpQLSfqVSnpz2gj1dVf_t-GuztTUaFjJZGwt9KBycf8r24NUw-H0Q/viewform';
+
 export default async function HomePage() {
   const { supabase, user, profile } = await requireFacilityUser();
 
@@ -55,7 +58,7 @@ export default async function HomePage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Link
               href="/team"
               className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-sm transition hover:bg-amber-50"
@@ -68,6 +71,14 @@ export default async function HomePage() {
             >
               🌟 私の学び
             </Link>
+            <a
+              href={FEEDBACK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900 shadow-sm transition hover:bg-amber-200"
+            >
+              📮 ご感想
+            </a>
             <SignOutButton />
           </div>
         </div>
