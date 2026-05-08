@@ -23,29 +23,26 @@ export default async function LoginPage({
 
   return (
     <main className="flex flex-1 items-center justify-center bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 px-6 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-white/80 p-10 shadow-xl backdrop-blur">
-        <div className="flex flex-col items-center gap-6">
+      <div className="w-full max-w-md rounded-3xl bg-white/80 p-8 shadow-xl backdrop-blur">
+        <div className="flex flex-col items-center">
+          {/* タイトル(魔法のランプnote)はロゴに含まれているため、視覚的には非表示。SEO/スクリーンリーダー用に残す */}
+          <h1 className="sr-only">魔法のランプnote</h1>
           <Image
-            src="/genie.jpg"
-            alt="ジーニー"
-            width={120}
-            height={120}
-            className="rounded-full shadow-md"
+            src="/logo.jpg"
+            alt="魔法のランプnote"
+            width={560}
+            height={315}
+            className="h-auto w-full max-w-sm"
             priority
           />
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight text-amber-900">
-              魔法のランプnote
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-amber-800/80">
-              子どもたちの今日を、ぼくと一緒に
-              <br />
-              そっと書き留めていきましょう。
-            </p>
-          </div>
+          <p className="mt-2 text-center text-sm leading-relaxed text-amber-800/80">
+            子どもたちの今日を、ぼくと一緒に
+            <br />
+            そっと書き留めていきましょう。
+          </p>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8">
           <LoginButton next={safeNext} />
           <p className="mt-6 text-center text-xs text-amber-700/70">
             ログインすることで、

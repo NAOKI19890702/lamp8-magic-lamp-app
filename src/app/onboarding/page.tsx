@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { OnboardingForm } from './onboarding-form';
@@ -24,12 +25,19 @@ export default async function OnboardingPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-gradient-to-b from-amber-50 via-orange-50 to-amber-100 px-6 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-white/80 p-10 shadow-xl backdrop-blur">
-        <div className="text-center">
-          <p className="text-3xl">✨</p>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight text-amber-900">
+      <div className="w-full max-w-md rounded-3xl bg-white/80 p-8 shadow-xl backdrop-blur">
+        <div className="flex flex-col items-center text-center">
+          <Image
+            src="/logo.jpg"
+            alt="魔法のランプnote"
+            width={560}
+            height={315}
+            className="h-auto w-full max-w-sm"
+            priority
+          />
+          <h2 className="mt-2 text-xl font-bold tracking-tight text-amber-900">
             事業所をはじめましょう
-          </h1>
+          </h2>
           <p className="mt-2 text-sm leading-relaxed text-amber-800/80">
             あなたのお勤め先の名前を教えてください。
             <br />
@@ -37,7 +45,7 @@ export default async function OnboardingPage() {
           </p>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <OnboardingForm />
         </div>
       </div>
