@@ -24,3 +24,40 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 印刷時: 記録一覧だけを綺麗に印刷する */
+@media print {
+  body {
+    background: white !important;
+  }
+  /* メイン全体を一旦非表示にし、記録履歴セクションだけ復活させる */
+  body * {
+    visibility: hidden;
+  }
+  .record-history,
+  .record-history * {
+    visibility: visible;
+  }
+  .record-history {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px 24px;
+  }
+  /* 編集/削除/共有ボタンや「元のメモ」折りたたみは印刷では不要 */
+  .record-actions,
+  .record-raw-details {
+    display: none !important;
+  }
+  /* 印刷ボタン自体も隠す */
+  .record-history button {
+    display: none !important;
+  }
+  .record-card {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #f3d5a3;
+    page-break-inside: avoid;
+  }
+}

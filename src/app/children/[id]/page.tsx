@@ -6,7 +6,7 @@ import { requireFacilityUser } from '@/lib/db/auth-context';
 import { getOrCreateDailyPack } from '@/lib/ai/daily-questions';
 import { FIXED_QUESTION_1 } from '@/lib/prompts/genie';
 import { NewRecordForm } from './new-record-form';
-import { RecordCard } from './record-actions';
+import { PrintButton, RecordCard } from './record-actions';
 
 export default async function ChildDetailPage({
   params,
@@ -94,10 +94,13 @@ export default async function ChildDetailPage({
           </div>
         </section>
 
-        <section className="mt-6">
-          <h2 className="px-1 text-base font-bold text-amber-900">
-            これまでの記録
-          </h2>
+        <section className="record-history mt-6">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-bold text-amber-900">
+              これまでの記録
+            </h2>
+            {records && records.length > 0 && <PrintButton />}
+          </div>
           {records && records.length > 0 ? (
             <ul className="mt-3 grid gap-3">
               {records.map((r) => (
